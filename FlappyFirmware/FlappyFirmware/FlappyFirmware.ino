@@ -22,8 +22,9 @@ int logNumber = 0;
 String fileName;
 File myFile;
 int status;
-const int ledPin = 4;
+const int ledPin = 3;
 unsigned long previousMillis = 0;
+unsigned long previousMillis2 = 0;
 const long longBlinkInterval = 4000;
 const long fastBlinkInterval = 1000;
 int ledState = LOW;
@@ -85,7 +86,8 @@ void loop() {
   Serial.print(",");
   Serial.println(analogRead(A7));
   */
-  if (currentMillis - previousMillis >= innerInterval) {
+  if (currentMillis - previousMillis >= 1000) {
+    previousMillis = currentMillis;
     String s = String(millis()) + ", ";
     for(int i = 0;i<numCables;i++)
     {
@@ -98,9 +100,24 @@ void loop() {
     // myFile.flush();
     s = s.substring(0, s.length() - 2);
     writeLog(s);
-    previousMillis = currentMillis;
   }
-  if (status == 1) {
+
+//digitalWrite(ledPin, HIGH);
+  Serial.println("Inner Interval is Running");
+  Serial.println(currentMillis - previousMillis2);
+if (currentMillis - previousMillis2 >= 1000) {
+  previousMillis2 = currentMillis;
+  Serial.println("Inner Interval is Running");
+      if (ledState == LOW) {
+        ledState = HIGH;
+      } else {
+        ledState = LOW;
+      }
+    //set the LED with the ledState of the variable
+    digitalWrite(ledPin, ledState);
+  } 
+
+  /*if (status == 1) {
     digitalWrite(ledPin, HIGH);
   } else if (status == 2) {
     if (currentMillis - previousMillis >= longBlinkInterval) {
@@ -125,12 +142,14 @@ void loop() {
       previousMillis = currentMillis;
     }
   }
+  */
+  
 }
 void writeLog(String input) {
   File logFile = SD.open(fileName.c_str(), FILE_WRITE);
   if (!logFile) { // there is an issue here but that is for tomorrow
     Serial.println("Unable to open log file for writing!");
-    status = 3;
+    status = 3;    
     Serial.println(status);
     Serial.println("Should be fast blinking");
   }
