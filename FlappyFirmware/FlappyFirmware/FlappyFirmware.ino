@@ -24,7 +24,6 @@ File myFile;
 int status;
 const int ledPin = 3;
 unsigned long previousMillis = 0;
-unsigned long previousMillis2 = 0;
 const long longBlinkInterval = 4000;
 const long fastBlinkInterval = 1000;
 int ledState = LOW;
@@ -36,14 +35,11 @@ void setup() {
   while (!SD.begin()) {
     Serial.println("SD Initialization failed!");
     status = 2;
-    Serial.println(status);
-    Serial.println("should be slow blinking");
     delay(1000);
   }
   Serial.println("SD Initialization success!");
+  //digitalWrite(ledPin, HIGH);
   status = 1;
-  Serial.println(status);
-  Serial.println("should be stagnant light");
   //Figure out the current log number on the SD card
   File rootDir = SD.open("/");
   if (rootDir) {
@@ -86,8 +82,8 @@ void loop() {
   Serial.print(",");
   Serial.println(analogRead(A7));
   */
-  if (currentMillis - previousMillis >= 1000) {
-    previousMillis = currentMillis;
+
+  if (currentMillis - previousMillis >= innerInterval) {
     String s = String(millis()) + ", ";
     for(int i = 0;i<numCables;i++)
     {
@@ -100,58 +96,22 @@ void loop() {
     // myFile.flush();
     s = s.substring(0, s.length() - 2);
     writeLog(s);
+    if (status == 1) {
+      digitalWrite(ledPin, HIGH);
+    } else {
+      digitalWrite(ledPin, LOW);
+    }
+    previousMillis = currentMillis;
   }
 
-//digitalWrite(ledPin, HIGH);
-  Serial.println("Inner Interval is Running");
-  Serial.println(currentMillis - previousMillis2);
-if (currentMillis - previousMillis2 >= 1000) {
-  previousMillis2 = currentMillis;
-  Serial.println("Inner Interval is Running");
-      if (ledState == LOW) {
-        ledState = HIGH;
-      } else {
-        ledState = LOW;
-      }
-    //set the LED with the ledState of the variable
-    digitalWrite(ledPin, ledState);
-  } 
-
-  /*if (status == 1) {
-    digitalWrite(ledPin, HIGH);
-  } else if (status == 2) {
-    if (currentMillis - previousMillis >= longBlinkInterval) {
-      if (ledState == LOW) {
-        ledState = HIGH;
-      } else {
-        ledState = LOW;
-      }
-    //set the LED with the ledState of the variable
-      digitalWrite(ledPin, ledState);
-      previousMillis = currentMillis;
-    }
-  } else if (status == 3) {
-    if (currentMillis - previousMillis >= fastBlinkInterval) {
-      if (ledState == LOW) {
-        ledState = HIGH;
-      } else {
-        ledState = LOW;
-      }
-    //set the LED with the ledState of the variable
-      digitalWrite(ledPin, ledState);
-      previousMillis = currentMillis;
-    }
-  }
-  */
-  
 }
 void writeLog(String input) {
   File logFile = SD.open(fileName.c_str(), FILE_WRITE);
   if (!logFile) { // there is an issue here but that is for tomorrow
     Serial.println("Unable to open log file for writing!");
-    status = 3;    
-    Serial.println(status);
-    Serial.println("Should be fast blinking");
+    status = 3;
+  } else {
+    status = 1;
   }
   Serial.println(input);
   logFile.println(input);
